@@ -1,0 +1,112 @@
+/* Colours meet WCAG AA (4.5:1) for text against their own background in both themes. */
+:root {
+  color-scheme: light;
+  --bg: #fbfaf8;
+  --surface: #ffffff;
+  --text: #1c1b1a;
+  --muted: #5c5752;
+  --border: #dedad5;
+  --accent: #7a1f3d;
+  --accent-contrast: #ffffff;
+  --focus: #1d4ed8;
+  --radius: 6px;
+  --max: 1200px;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  line-height: 1.5;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --bg: #121212;
+    --surface: #1d1c1b;
+    --text: #ece9e6;
+    --muted: #b5aea7;
+    --border: #3a3735;
+    --accent: #e8a3b8;
+    --accent-contrast: #121212;
+    --focus: #93c5fd;
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #121212;
+  --surface: #1d1c1b;
+  --text: #ece9e6;
+  --muted: #b5aea7;
+  --border: #3a3735;
+  --accent: #e8a3b8;
+  --accent-contrast: #121212;
+  --focus: #93c5fd;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+a {
+  color: var(--accent);
+  text-underline-offset: 0.15em;
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.wrap {
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.lede {
+  font-size: 1.1rem;
+  max-width: 65ch;
+}
+
+.prose {
+  max-width: 70ch;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

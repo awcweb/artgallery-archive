@@ -1,0 +1,110 @@
+---
+import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
+import Layout from '../layouts/Layout.astro';
+import legacyText from '../data/legacy-text.json';
+import { UNKNOWN_YEAR, yearKey, yearLabel } from '../lib/site';
+
+const photos = (await getCollection('laTrips')).sort(
+  (a, b) => (a.data.year ?? 9999) - (b.data.year ?? 9999) || a.id.localeCompare(b.id, 'en', { numeric: true }),
+);
+const keys = [...new Set(photos.map((p) => yearKey(p.data.year)))].sort((a, b) =>
+  a === UNKNOWN_YEAR ? 1 : b === UNKNOWN_YEAR ? -1 : Number(a) - Number(b),
+);
+const groups = keys.map((key) => ({ key, photos: photos.filter((p) => yearKey(p.data.year) === key) }));
+const alt = (caption: string | null, year: number | null) =>
+  caption ?? `Photo from the ${year ?? ''} AWC art student trip to Los Angeles`.replace('  ', ' ');
+---
+
+<Layout title="LA Trips" description="Photos from Arizona Western College art student field trips to Los Angeles.">
+  <div class="wrap">
+    <h1>LA Trips</h1>
+    <p class="lede">{legacyText.laIntro.text}</p>
+    <nav aria-label="Trip years">
+      <ul class="jump">
+        {
+          groups.map((g) => (
+            <li>
+              <a href={`#trip-${g.key}`}>{yearLabel(g.key)}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    {
+      groups.map((g) => (
+        <section aria-labelledby={`trip-${g.key}`}>
+          <h2 id={`trip-${g.key}`}>
+            {g.key === UNKNOWN_YEAR ? 'Year not recorded' : `LA ${g.key}`}{' '}
+            <span class="muted">({g.photos.length} photos)</span>
+          </h2>
+          <ul class="album">
+            {g.photos.map((p) => (
+              <li>
+                <figure>
+                  <a href={p.data.image.src}>
+                    <Image
+                      src={p.data.image}
+                      alt={alt(p.data.caption, p.data.year)}
+                      widths={[320, 520]}
+                      sizes="(max-width: 520px) 90vw, 320px"
+                      format="webp"
+                      loading="lazy"
+                    />
+                  </a>
+                  {p.data.caption && <figcaption>{p.data.caption}</figcaption>}
+                </figure>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))
+    }
+  </div>
+</Layout>
+
+<style>
+  .jump {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    list-style: none;
+    padding: 0;
+  }
+  .jump a {
+    display: inline-block;
+    padding: 4px 0;
+  }
+  section {
+    margin-top: 32px;
+  }
+  .album {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr));
+    gap: 16px;
+    list-style: none;
+    padding: 0;
+  }
+  .album > li {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 260px;
+  }
+  figure {
+    margin: 0;
+  }
+  figure a {
+    display: block;
+  }
+  figure img {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+  }
+  figcaption {
+    font-size: 0.92rem;
+    margin-top: 4px;
+  }
+</style>

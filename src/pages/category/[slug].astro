@@ -1,0 +1,81 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import ArtGrid from '../../components/ArtGrid.astro';
+import CategoryLabel from '../../components/CategoryLabel.astro';
+import { CATEGORIES, getArtworks, url, yearKey, yearKeys, yearLabel, type Artwork } from '../../lib/site';
+
+export async function getStaticPaths() {
+  const works = await getArtworks();
+  return CATEGORIES.map((cat) => ({
+    params: { slug: cat.slug },
+    props: { cat, works: works.filter((w) => w.data.category === cat.slug) },
+  })).filter((p) => p.props.works.length > 0);
+}
+
+const { cat, works } = Astro.props as {
+  cat: (typeof CATEGORIES)[number];
+  works: Artwork[];
+};
+// Oldest year first, with unknown-year works at the end.
+const keys = yearKeys(works);
+const known = keys.filter((k) => k !== 'unknown').reverse();
+const groups = [...known, ...keys.filter((k) => k === 'unknown')].map((key) => ({
+  key,
+  works: works.filter((w) => yearKey(w.data.year) === key),
+}));
+---
+
+<Layout title={cat.label} description={`${cat.label} in the AWC Art Gallery Archive: ${works.length} works.`}>
+  <div class="wrap">
+    <nav aria-label="Breadcrumb" class="crumbs">
+      <a href={url()}>Gallery</a> / <a href={url('category/')}>Categories</a>
+    </nav>
+    <h1><CategoryLabel slug={cat.slug} size={36} /></h1>
+    <p class="lede">
+      {works.length.toLocaleString('en-US')}
+      {works.length === 1 ? 'work' : 'works'}. Jump to a year:
+    </p>
+    <ul class="jump">
+      {
+        groups.map((g) => (
+          <li>
+            <a href={`#y-${g.key}`}>
+              {yearLabel(g.key)} <span class="muted">({g.works.length})</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+    {
+      groups.map((g) => (
+        <section aria-labelledby={`y-${g.key}`}>
+          <h2 id={`y-${g.key}`}>{yearLabel(g.key)}</h2>
+          <ArtGrid works={g.works} />
+        </section>
+      ))
+    }
+  </div>
+</Layout>
+
+<style>
+  .crumbs {
+    font-size: 0.95rem;
+  }
+  h1 {
+    margin-bottom: 4px;
+  }
+  .jump {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    list-style: none;
+    padding: 0;
+  }
+  .jump a {
+    display: inline-block;
+    padding: 4px 0;
+  }
+  section {
+    margin-top: 32px;
+  }
+</style>

@@ -1,0 +1,52 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import ArtGrid from '../../components/ArtGrid.astro';
+import { CATEGORIES, getArtworks, url, yearKey, yearKeys, yearLabel, type Artwork } from '../../lib/site';
+
+export async function getStaticPaths() {
+  const works = await getArtworks();
+  return yearKeys(works).map((key) => ({
+    params: { year: key },
+    props: { key, works: works.filter((w) => yearKey(w.data.year) === key) },
+  }));
+}
+
+const { key, works } = Astro.props as { key: string; works: Artwork[] };
+const label = yearLabel(key);
+const groups = CATEGORIES.map((cat) => ({ cat, works: works.filter((w) => w.data.category === cat.slug) })).filter(
+  (g) => g.works.length > 0,
+);
+---
+
+<Layout title={label} description={`Artwork from ${label} in the AWC Art Gallery Archive: ${works.length} works.`}>
+  <div class="wrap">
+    <nav aria-label="Breadcrumb" class="crumbs">
+      <a href={url()}>Gallery</a> / <a href={url('year/')}>Years</a>
+    </nav>
+    <h1>{label}</h1>
+    <p class="lede">
+      {works.length.toLocaleString('en-US')}
+      {works.length === 1 ? 'work' : 'works'}
+      {key === 'unknown' ? 'with no year recorded in the original gallery.' : `from ${label}.`}
+    </p>
+    {
+      groups.map((g) => (
+        <section aria-labelledby={`c-${g.cat.slug}`}>
+          <h2 id={`c-${g.cat.slug}`}>
+            {g.cat.label} <span class="muted">({g.works.length})</span>
+          </h2>
+          <ArtGrid works={g.works} />
+        </section>
+      ))
+    }
+  </div>
+</Layout>
+
+<style>
+  .crumbs {
+    font-size: 0.95rem;
+  }
+  section {
+    margin-top: 32px;
+  }
+</style>

@@ -1,0 +1,40 @@
+---
+import ArtCard from './ArtCard.astro';
+import type { Artwork } from '../lib/site';
+
+interface Props {
+  works: Artwork[];
+  id?: string;
+  label?: string;
+}
+
+const { works, id, label } = Astro.props;
+---
+
+<ul class="art-grid" id={id} aria-label={label}>
+  {works.map((work) => <ArtCard work={work} />)}
+</ul>
+
+<style>
+  .art-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(160px, 45%), 1fr));
+    gap: 8px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  @media (min-width: 640px) {
+    .art-grid {
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+    }
+  }
+  .art-grid > :global(li) {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 300px;
+  }
+  .art-grid > :global(li[hidden]) {
+    display: none;
+  }
+</style>

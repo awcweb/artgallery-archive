@@ -1,0 +1,86 @@
+---
+import Layout from '../layouts/Layout.astro';
+import legacyText from '../data/legacy-text.json';
+import { CATEGORIES, categoryUrl, getArtworks, url } from '../lib/site';
+
+const works = await getArtworks();
+const years = works.map((w) => w.data.year).filter((y): y is number => y !== null);
+const first = Math.min(...years);
+const last = Math.max(...years);
+const counts = CATEGORIES.map((c) => ({ c, n: works.filter((w) => w.data.category === c.slug).length })).filter(
+  (x) => x.n > 0,
+);
+---
+
+<Layout title="About" description="About the Arizona Western College Art Gallery Archive.">
+  <div class="wrap prose">
+    <h1>About the archive</h1>
+    <p class="lede">
+      From {first} to {last}, Arizona Western College in Yuma, Arizona, kept an online art gallery of work by its art
+      students and faculty. This archive brings that gallery's {works.length.toLocaleString('en-US')} works together in one
+      place, where you can search them and browse by category or year.
+    </p>
+
+    <h2>What's here</h2>
+    <ul>
+      {
+        counts.map(({ c, n }) => (
+          <li>
+            <a href={categoryUrl(c.slug)}>{c.label}</a>: {n.toLocaleString('en-US')}
+          </li>
+        ))
+      }
+    </ul>
+    <p>
+      Most works come from studio courses, such as Drawing I–III and Painting I–III, and are grouped by the semester they were
+      shown. From 2016 to 2018, some semesters list work from the Yuma and San Luis campuses separately. Exhibitions are works
+      shown in the AWC campus gallery (Art Building, room AB 110).
+    </p>
+
+    <h2>About the information</h2>
+    <p>
+      Titles, artists, media and dates come straight from the captions and folders of the original gallery pages. Nothing has
+      been guessed. Many works were posted with only the artist's name, so they show “Title not recorded.” If you know the
+      title, medium or date of a work, please let the AWC art department know so the record can be updated.
+    </p>
+
+    <h2>LA field trips</h2>
+    <p>{legacyText.laIntro.text}</p>
+    <p><a href={url('la-trips/')}>See the LA Trips photo album</a></p>
+
+    {
+      legacyText.symposium.length > 0 && (
+        <>
+          <h2>Yuma Symposium</h2>
+          <p>The original gallery also listed the visiting artists who presented at the Yuma Symposium:</p>
+          {legacyText.symposium.map((s) => (
+            <details>
+              <summary>
+                {s.heading} ({s.year})
+              </summary>
+              <p>{s.text}</p>
+            </details>
+          ))}
+        </>
+      )
+    }
+  </div>
+</Layout>
+
+<style>
+  details {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    padding: 10px 14px;
+    margin-bottom: 10px;
+  }
+  summary {
+    cursor: pointer;
+    font-weight: 600;
+    padding: 4px 0;
+  }
+  li {
+    margin-bottom: 4px;
+  }
+</style>

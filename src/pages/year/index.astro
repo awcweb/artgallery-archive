@@ -1,0 +1,55 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getArtworks, yearKey, yearKeys, yearLabel, yearUrl } from '../../lib/site';
+
+const works = await getArtworks();
+const years = yearKeys(works).map((key) => ({ key, count: works.filter((w) => yearKey(w.data.year) === key).length }));
+---
+
+<Layout title="Years">
+  <div class="wrap">
+    <h1>Years</h1>
+    <ul class="years">
+      {
+        years.map(({ key, count }) => (
+          <li>
+            <a href={yearUrl(key)}>
+              <span class="year">{yearLabel(key)}</span>
+              <span class="muted">
+                {count.toLocaleString('en-US')} {count === 1 ? 'work' : 'works'}
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</Layout>
+
+<style>
+  .years {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(160px, 100%), 1fr));
+    gap: 12px;
+    list-style: none;
+    padding: 0;
+  }
+  .years a {
+    display: flex;
+    flex-direction: column;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text);
+    text-decoration: none;
+  }
+  .years a:hover .year {
+    text-decoration: underline;
+  }
+  .year {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+</style>

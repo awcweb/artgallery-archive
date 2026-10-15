@@ -1,0 +1,77 @@
+---
+import { Image } from 'astro:assets';
+import { altText, artUrl, displayTitle, whenLabel, type Artwork } from '../lib/site';
+
+interface Props {
+  work: Artwork;
+}
+
+const { work } = Astro.props;
+const { data } = work;
+const when = whenLabel(data);
+---
+
+<li class="card" data-id={work.id}>
+  <a href={artUrl(work.id)}>
+    <div class="frame">
+      <Image
+        src={data.image}
+        alt={altText(data)}
+        widths={[240, 400]}
+        sizes="(max-width: 520px) 45vw, 240px"
+        format="webp"
+        loading="lazy"
+        decoding="async"
+      />
+    </div>
+    <span class={data.title ? 'title' : 'title untitled'}>{displayTitle(data)}</span>
+    <span class="meta">{[data.artist ?? 'Artist not recorded', when].filter(Boolean).join(' · ')}</span>
+  </a>
+</li>
+
+<style>
+  .card a {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    height: 100%;
+    padding: 8px;
+    border-radius: var(--radius);
+    color: var(--text);
+    text-decoration: none;
+  }
+  .card a:hover {
+    background: var(--surface);
+  }
+  .card a:hover .title {
+    text-decoration: underline;
+  }
+  .frame {
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 4px;
+  }
+  .frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  .title {
+    font-weight: 600;
+    line-height: 1.3;
+  }
+  .untitled {
+    font-weight: 400;
+    font-style: italic;
+    color: var(--muted);
+  }
+  .meta {
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+</style>

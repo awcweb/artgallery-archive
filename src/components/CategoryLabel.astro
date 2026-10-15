@@ -1,0 +1,29 @@
+---
+import { category, type CategorySlug } from '../lib/site';
+
+interface Props {
+  slug: CategorySlug;
+  size?: number;
+}
+
+const { slug, size = 24 } = Astro.props;
+const cat = category(slug);
+// Resize the icon by rewriting its width/height; it keeps currentColor so it follows the theme.
+const icon = cat.icon?.replace(/width="32" height="32"/, `width="${size}" height="${size}"`);
+---
+
+<span class="category-label">
+  {icon && <Fragment set:html={icon} />}
+  <span>{cat.label}</span>
+</span>
+
+<style>
+  .category-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+  }
+  .category-label :global(svg) {
+    flex: none;
+  }
+</style>

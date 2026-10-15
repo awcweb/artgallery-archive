@@ -1,0 +1,188 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ArtGrid from '../components/ArtGrid.astro';
+import CategoryLabel from '../components/CategoryLabel.astro';
+import { CATEGORIES, categoryUrl, getArtworks, url, yearKeys, yearLabel, yearUrl } from '../lib/site';
+
+const works = await getArtworks();
+const years = yearKeys(works);
+const categories = CATEGORIES.filter((c) => works.some((w) => w.data.category === c.slug));
+---
+
+<Layout>
+  <div class="wrap">
+    <h1>AWC Art Gallery Archive</h1>
+    <p class="lede">
+      {works.length.toLocaleString('en-US')} works by Arizona Western College art students and faculty, from the college's
+      online art gallery. Search, or filter by category and year.
+    </p>
+
+    <form class="filters" id="filters" role="search" aria-label="Filter artworks" data-index={url('search-index.json')} hidden>
+      <div class="field field-search">
+        <label for="q">Search</label>
+        <input
+          id="q"
+          name="q"
+          type="search"
+          autocomplete="off"
+          placeholder="Title, artist, medium or description"
+          aria-describedby="result-count"
+        />
+      </div>
+      <div class="field">
+        <label for="category">Category</label>
+        <select id="category" name="category">
+          <option value="">All categories</option>
+          {categories.map((c) => <option value={c.slug}>{c.label}</option>)}
+        </select>
+      </div>
+      <div class="field">
+        <label for="year">Year</label>
+        <select id="year" name="year">
+          <option value="">All years</option>
+          {years.map((y) => <option value={y}>{yearLabel(y)}</option>)}
+        </select>
+      </div>
+      <button type="reset" id="clear" class="clear">Clear filters</button>
+    </form>
+
+    <p id="result-count" class="result-count" role="status" aria-live="polite">
+      Showing all {works.length.toLocaleString('en-US')} works
+    </p>
+    <p id="no-results" class="no-results" hidden>No works match these filters. Try a shorter search, or clear the filters.</p>
+
+    <ArtGrid works={works} id="gallery" label="Artworks" />
+
+    <noscript>
+      <style>
+        #filters {
+          display: none;
+        }
+      </style>
+    </noscript>
+
+    <section class="browse" aria-labelledby="browse-heading">
+      <h2 id="browse-heading">Browse</h2>
+      <div class="browse-cols">
+        <div>
+          <h3>By category</h3>
+          <ul class="link-list">
+            {
+              categories.map((c) => (
+                <li>
+                  <a href={categoryUrl(c.slug)}>
+                    <CategoryLabel slug={c.slug} size={20} />
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+        <div>
+          <h3>By year</h3>
+          <ul class="link-list years">
+            {
+              years.map((y) => (
+                <li>
+                  <a href={yearUrl(y)}>{yearLabel(y)}</a>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </div>
+    </section>
+  </div>
+</Layout>
+
+<script>
+  import { initGallery } from '../scripts/gallery';
+  initGallery();
+</script>
+
+<style>
+  h1 {
+    margin-top: 0;
+  }
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 12px 16px;
+    padding: 16px;
+    margin: 16px 0 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1 1 160px;
+  }
+  .field-search {
+    flex: 3 1 260px;
+  }
+  label {
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+  input,
+  select,
+  .clear {
+    font: inherit;
+    min-height: 44px;
+    padding: 8px 10px;
+    border: 1px solid var(--muted);
+    border-radius: var(--radius);
+    background: var(--bg);
+    color: var(--text);
+  }
+  .clear {
+    flex: 0 0 auto;
+    cursor: pointer;
+    background: transparent;
+    color: var(--accent);
+    border-color: var(--accent);
+    font-weight: 600;
+  }
+  .clear:hover {
+    background: var(--accent);
+    color: var(--accent-contrast);
+  }
+  .result-count {
+    font-weight: 600;
+    margin: 8px 0 12px;
+  }
+  .no-results {
+    padding: 24px;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+    text-align: center;
+  }
+  .browse {
+    margin-top: 48px;
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
+  }
+  .browse-cols {
+    display: grid;
+    gap: 8px 48px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+  .link-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 6px;
+  }
+  .link-list.years {
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  }
+  .link-list a {
+    display: inline-block;
+    padding: 4px 0;
+  }
+</style>
