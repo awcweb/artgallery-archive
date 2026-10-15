@@ -42,7 +42,7 @@ const artworks = defineCollection({
         height: z.number().int().positive(),
         sourcePage: legacyPath.nullable(),
         otherSourcePages: z.array(legacyPath),
-        legacyImage: legacyPath,
+        legacyImage: legacyPath.nullable(),
       })
       .strict(),
 });
