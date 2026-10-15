@@ -1,0 +1,74 @@
+---
+import { Image } from 'astro:assets';
+import Layout from '../../layouts/Layout.astro';
+import CategoryLabel from '../../components/CategoryLabel.astro';
+import { CATEGORIES, categoryUrl, getArtworks } from '../../lib/site';
+
+const works = await getArtworks();
+const categories = CATEGORIES.map((cat) => {
+  const inCat = works.filter((w) => w.data.category === cat.slug);
+  // Cover: the most recent work in the category.
+  return { cat, count: inCat.length, cover: inCat.at(-1) };
+}).filter((c) => c.count > 0);
+---
+
+<Layout title="Categories">
+  <div class="wrap">
+    <h1>Categories</h1>
+    <ul class="categories">
+      {
+        categories.map(({ cat, count, cover }) => (
+          <li>
+            <a href={categoryUrl(cat.slug)}>
+              {cover && (
+                <Image src={cover.data.image} alt="" widths={[320, 480]} sizes="(max-width: 520px) 90vw, 320px" format="webp" loading="lazy" />
+              )}
+              <span class="name">
+                <CategoryLabel slug={cat.slug} />
+              </span>
+              <span class="muted">
+                {count.toLocaleString('en-US')} {count === 1 ? 'work' : 'works'}
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</Layout>
+
+<style>
+  .categories {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr));
+    gap: 16px;
+    list-style: none;
+    padding: 0;
+  }
+  .categories a {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text);
+    text-decoration: none;
+    height: 100%;
+  }
+  .categories a:hover .name {
+    text-decoration: underline;
+  }
+  .categories img {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: calc(var(--radius) - 2px);
+  }
+  .name {
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-top: 6px;
+  }
+</style>

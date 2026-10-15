@@ -1,0 +1,235 @@
+---
+import { Image } from 'astro:assets';
+import Layout from '../../layouts/Layout.astro';
+import CategoryLabel from '../../components/CategoryLabel.astro';
+import {
+  altText,
+  artUrl,
+  category,
+  categoryUrl,
+  displayTitle,
+  getArtworks,
+  url,
+  yearKey,
+  yearLabel,
+  yearUrl,
+  type Artwork,
+} from '../../lib/site';
+
+export async function getStaticPaths() {
+  const works = await getArtworks();
+  return works.map((work, i) => ({
+    params: { id: work.id },
+    props: { work, prev: works[i - 1] ?? null, next: works[i + 1] ?? null },
+  }));
+}
+
+const { work, prev, next } = Astro.props as { work: Artwork; prev: Artwork | null; next: Artwork | null };
+const { data } = work;
+const title = displayTitle(data);
+const key = yearKey(data.year);
+
+const details: [string, string | null][] = [
+  ['Medium', data.medium],
+  ['Dimensions', data.dimensions],
+  ['Semester', data.semester && data.year ? `${data.semester} ${data.year}` : null],
+  ['Course', data.course],
+  ['Campus', data.campus],
+];
+---
+
+<Layout
+  title={data.title ? `${data.title}${data.artist ? ` by ${data.artist}` : ''}` : `${category(data.category).label} by ${data.artist ?? 'unknown artist'}`}
+  description={altText(data)}
+>
+  <article class="wrap artwork">
+    <nav aria-label="Breadcrumb" class="crumbs">
+      <a href={url()}>Gallery</a> / <a href={categoryUrl(data.category)}>{category(data.category).label}</a>
+    </nav>
+
+    <div class="layout">
+      <figure>
+        <a href={data.image.src} class="image-link">
+          <Image
+            src={data.image}
+            alt={altText(data)}
+            widths={[480, 800, 1200]}
+            sizes="(max-width: 900px) 100vw, 60vw"
+            format="webp"
+            loading="eager"
+            fetchpriority="high"
+          />
+        </a>
+        <figcaption>
+          <a href={data.image.src}>View full size</a>{' '}
+          <span class="muted">({data.width} × {data.height} pixels, original file)</span>
+        </figcaption>
+      </figure>
+
+      <div class="info">
+        <h1 class={data.title ? '' : 'untitled'}>{title}</h1>
+        {data.artist && <p class="artist">{data.artist}</p>}
+
+        <dl>
+          {
+            details
+              .filter(([, value]) => value)
+              .map(([term, value]) => (
+                <div>
+                  <dt>{term}</dt>
+                  <dd>{value}</dd>
+                </div>
+              ))
+          }
+          <div>
+            <dt>Category</dt>
+            <dd>
+              <a href={categoryUrl(data.category)}>
+                <CategoryLabel slug={data.category} size={20} />
+              </a>
+            </dd>
+          </div>
+          <div>
+            <dt>Year</dt>
+            <dd>
+              <a href={yearUrl(key)}>{yearLabel(key)}</a>
+            </dd>
+          </div>
+        </dl>
+
+        {data.description && <p class="description">{data.description}</p>}
+
+        {
+          !data.title && (
+            <p class="note muted">
+              The original gallery didn't record a title{!data.artist && ' or artist'} for this work.
+            </p>
+          )
+        }
+      </div>
+    </div>
+
+    <nav class="pager" aria-label="More artworks">
+      {
+        prev ? (
+          <a href={artUrl(prev.id)} rel="prev">
+            <span><span aria-hidden="true">←</span> Previous</span>
+            <span class="pager-title">{displayTitle(prev.data)}</span>
+          </a>
+        ) : (
+          <span />
+        )
+      }
+      {
+        next && (
+          <a href={artUrl(next.id)} rel="next" class="next">
+            <span>Next <span aria-hidden="true">→</span></span>
+            <span class="pager-title">{displayTitle(next.data)}</span>
+          </a>
+        )
+      }
+    </nav>
+  </article>
+</Layout>
+
+<style>
+  .crumbs {
+    font-size: 0.95rem;
+    margin-bottom: 16px;
+  }
+  .layout {
+    display: grid;
+    gap: 24px 40px;
+  }
+  @media (min-width: 900px) {
+    .layout {
+      grid-template-columns: minmax(0, 3fr) minmax(260px, 2fr);
+      align-items: start;
+    }
+  }
+  figure {
+    margin: 0;
+  }
+  .image-link {
+    display: grid;
+    place-items: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px;
+  }
+  .image-link img {
+    max-height: 80vh;
+    width: auto;
+  }
+  figcaption {
+    margin-top: 8px;
+    font-size: 0.95rem;
+  }
+  h1 {
+    margin: 0 0 4px;
+    font-size: clamp(1.6rem, 4vw, 2.2rem);
+  }
+  h1.untitled {
+    font-style: italic;
+    font-weight: 500;
+    color: var(--muted);
+  }
+  .artist {
+    font-size: 1.25rem;
+    margin: 0 0 16px;
+  }
+  dl {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+  }
+  dl > div {
+    display: grid;
+    grid-template-columns: 7.5rem 1fr;
+    gap: 8px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  dt {
+    font-weight: 600;
+    color: var(--muted);
+  }
+  dd {
+    margin: 0;
+  }
+  .description {
+    margin-top: 20px;
+    white-space: pre-line;
+  }
+  .note {
+    margin-top: 20px;
+    font-size: 0.95rem;
+  }
+  .pager {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 40px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+  .pager a {
+    display: flex;
+    flex-direction: column;
+    max-width: 45%;
+    padding: 6px 0;
+    font-weight: 600;
+  }
+  .pager .next {
+    text-align: right;
+    margin-left: auto;
+  }
+  .pager-title {
+    font-weight: 400;
+    color: var(--muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+</style>

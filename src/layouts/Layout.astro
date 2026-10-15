@@ -1,0 +1,217 @@
+---
+import '../styles/global.css';
+import { SITE_TITLE, url } from '../lib/site';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title, description = 'Student and faculty artwork from the Arizona Western College art gallery, 2001–2018.' } =
+  Astro.props;
+const pageTitle = title ? `${title} | ${SITE_TITLE}` : SITE_TITLE;
+const path = Astro.url.pathname;
+const nav = [
+  { href: url(), label: 'Gallery' },
+  { href: url('category/'), label: 'Categories' },
+  { href: url('year/'), label: 'Years' },
+  { href: url('about/'), label: 'About' },
+];
+const isCurrent = (href: string) => (href === url() ? path === href : path.startsWith(href));
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={new URL(path, Astro.site)} />
+    <link rel="icon" href={url('favicon.svg')} type="image/svg+xml" />
+    <script is:inline>
+      // Apply a saved theme choice before first paint to avoid a flash.
+      try {
+        const saved = localStorage.getItem('theme');
+        if (saved === 'light' || saved === 'dark') document.documentElement.dataset.theme = saved;
+      } catch {}
+    </script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="site-header">
+      <div class="wrap header-inner">
+        <a class="brand" href={url()}>
+          <span class="brand-name">AWC Art Gallery</span>
+          <span class="brand-sub">Archive 2001–2018</span>
+        </a>
+        <nav aria-label="Main">
+          <ul>
+            {
+              nav.map((item) => (
+                <li>
+                  <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>
+                    {item.label}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </nav>
+        <button type="button" class="theme-toggle" id="theme-toggle" aria-pressed="false" hidden>
+          <span class="visually-hidden">Dark mode</span>
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+            <path
+              fill="currentColor"
+              d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.39 5.39 0 0 1-4.4 2.26 5.4 5.4 0 0 1-3.14-9.8A9 9 0 0 0 12 3z"
+            ></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap footer-inner">
+        <p>
+          Artwork by students and faculty of <a href="https://www.azwestern.edu/">Arizona Western College</a>,
+          Yuma, Arizona. Migrated from the original AWC Online Art Gallery.
+        </p>
+        <ul class="footer-links">
+          <li><a href={url('la-trips/')}>LA Trips photo album</a></li>
+          <li><a href={url('about/')}>About the archive</a></li>
+        </ul>
+      </div>
+    </footer>
+
+    <script>
+      const button = document.getElementById('theme-toggle') as HTMLButtonElement;
+      const root = document.documentElement;
+      const isDark = () =>
+        root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+      const sync = () => button.setAttribute('aria-pressed', String(isDark()));
+      button.hidden = false;
+      sync();
+      button.addEventListener('click', () => {
+        const next = isDark() ? 'light' : 'dark';
+        root.dataset.theme = next;
+        try {
+          localStorage.setItem('theme', next);
+        } catch {}
+        sync();
+      });
+      matchMedia('(prefers-color-scheme: dark)').addEventListener('change', sync);
+    </script>
+  </body>
+</html>
+
+<style>
+  .skip {
+    position: absolute;
+    left: 8px;
+    top: -48px;
+    background: var(--accent);
+    color: var(--accent-contrast);
+    padding: 8px 12px;
+    border-radius: var(--radius);
+    z-index: 10;
+  }
+  .skip:focus {
+    top: 8px;
+  }
+  .site-header {
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .header-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 24px;
+    padding-block: 12px;
+  }
+  .brand {
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    color: var(--text);
+    margin-right: auto;
+  }
+  .brand-name {
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: var(--accent);
+  }
+  .brand-sub {
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  nav ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  nav a {
+    color: var(--text);
+    text-decoration: none;
+    padding: 6px 2px;
+    border-bottom: 2px solid transparent;
+  }
+  nav a:hover,
+  nav a[aria-current='page'] {
+    border-bottom-color: var(--accent);
+  }
+  .theme-toggle {
+    display: inline-grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+  }
+  .theme-toggle[aria-pressed='true'] {
+    background: var(--accent);
+    color: var(--accent-contrast);
+    border-color: var(--accent);
+  }
+  main {
+    padding-block: 24px 48px;
+  }
+  main:focus {
+    outline: none;
+  }
+  .site-footer {
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    font-size: 0.95rem;
+  }
+  .footer-inner {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px 32px;
+    padding-block: 20px;
+  }
+  .footer-inner p {
+    margin: 0;
+    max-width: 60ch;
+    color: var(--muted);
+  }
+  .footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+</style>

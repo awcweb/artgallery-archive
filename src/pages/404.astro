@@ -1,0 +1,15 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { url } from '../lib/site';
+---
+
+<Layout title="Page not found">
+  <div class="wrap prose">
+    <h1>Page not found</h1>
+    <p>
+      That page isn't in the archive. Addresses from the old AWC Online Art Gallery don't carry over, but every work is still
+      here.
+    </p>
+    <p><a href={url()}>Search the gallery</a></p>
+  </div>
+</Layout>
